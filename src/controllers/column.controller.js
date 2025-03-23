@@ -1,10 +1,31 @@
-const Column = require("../models/column")
+const Column = require("../models/column");
 
+// controllers/columnController.js
+
+const getBoardColumns = async (req, res) => {
+  try {
+    const columns = await Column.find({ board: req.params.boardId })
+      .populate("tasks")
+      .sort("position");
+
+    res.status(200).json({
+      success: true,
+      count: columns.length,
+      data: columns,
+    });
+  } catch (error) {
+    console.error("Get columns error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Server error",
+    });
+  }
+};
 
 // @desc   Create a new column
 // @route  POST /api/columns
 // @access Private
- const createColumn = async (req, res) => {
+const createColumn = async (req, res) => {
   const { name, boardId } = req.body;
 
   if (!name || !boardId) {
@@ -26,15 +47,17 @@ const Column = require("../models/column")
 // @desc   Get all columns for a board
 // @route  GET /api/columns/:boardId
 // @access Private
- const getColumnsByBoard = async (req, res) => {
-  const columns = await Column.find({ board: req.params.boardId }).sort("position");
+const getColumnsByBoard = async (req, res) => {
+  const columns = await Column.find({ board: req.params.boardId }).sort(
+    "position"
+  );
   res.json(columns);
 };
 
 // @desc   Update a column
 // @route  PUT /api/columns/:id
 // @access Private
- const updateColumn = async (req, res) => {
+const updateColumn = async (req, res) => {
   const column = await Column.findById(req.params.id);
 
   if (!column) {
@@ -66,4 +89,10 @@ const deleteColumn = async (req, res) => {
   res.json({ message: "Column and its tasks deleted successfully" });
 };
 
-module.exports = { createColumn, getColumnsByBoard, updateColumn, deleteColumn };
+module.exports = {
+  createColumn,
+  getColumnsByBoard,
+  getBoardColumns,
+  updateColumn,
+  deleteColumn,
+};

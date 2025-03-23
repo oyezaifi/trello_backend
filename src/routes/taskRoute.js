@@ -1,26 +1,17 @@
-const  express = require("express");
+const express = require("express");
 const {
   createTask,
-  getTasksByColumn,
-  updateTask,
+
   moveTask,
-  deleteTask,
+  getBoardTasks,
 } = require("../controllers/task.controller.js");
-// import { protect } from "../middlewares/auth.middleware.js";
+const { protect } = require("../middlewares/auth.middleware.js");
+const checkColumnsExist = require("../middlewares/coloumnCheck.js");
 
 const router = express.Router();
 
-router.route("/")
-  .post(createTask); // Create a new task
-
-router.route("/:columnId")
-  .get( getTasksByColumn); // Get all tasks in a column
-
-router.route("/:id")
-  .put( updateTask) // Update a task
-  .delete( deleteTask); // Delete a task
-
-router.route("/:id/move")
-  .put( moveTask); // Move a task to another column
+router.post("/create", protect, checkColumnsExist, createTask);
+router.get("/board/:boardId", protect, getBoardTasks);
+router.put("/:id/move", protect, moveTask);
 
 module.exports = router;

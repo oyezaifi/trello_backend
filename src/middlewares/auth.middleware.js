@@ -1,25 +1,46 @@
+// middleware/authMiddleware.js
 const jwt = require("jsonwebtoken");
-const User = require("../models/user");
+const User = require("../models/user"); // Import your User model
 
-
-// Middleware to protect routes
 const protect = async (req, res, next) => {
-  let token;
+  try {
+    let token;
 
-  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
-    try {
+    // 1. Check for authorization header
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      // Extract token from header
       token = req.headers.authorization.split(" ")[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      req.user = await User.findById(decoded.id).select("-password"); // Exclude password
-      next();
-    } catch (error) {
-      res.status(401);
-      throw new Error("Not authorized, invalid token");
     }
-  } else {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+
+    if (!token) {
+      res.status(401);
+      throw new Error("Not authorized - No token provided");
+    }
+
+    // 2. Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // 3. Get user from token payload
+    const user = await User.findById(decoded.id).select("-password");
+
+    if (!user) {
+      res.status(401);
+      throw new Error("Not authorized - User not found");
+    }
+
+    // 4. Attach user to request object
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    res.status(401).json({
+      success: false,
+      error: "Not authorized - Invalid token",
+    });
   }
 };
-module.exports = protect;
+
+module.exports = { protect };

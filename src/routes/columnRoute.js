@@ -1,20 +1,9 @@
+// routes/columnRoutes.js
 const express = require("express");
-const  {
-  createColumn,
-  getColumnsByBoard,
-  updateColumn,
-  deleteColumn,
-} = require("../controllers/column.controller.js");
+const { protect } = require("../middlewares/auth.middleware");
+const { getBoardColumns } = require("../controllers/column.controller");
 const router = express.Router();
 
-router.route("/")
-  .post( createColumn); // Create a new column
-
-router.route("/:boardId")
-  .get( getColumnsByBoard); // Get all columns for a board
-
-router.route("/:id")
-  .put( updateColumn) // Update a column
-  .delete( deleteColumn); // Delete a column
+router.get("/board/:boardId", protect, getBoardColumns);
 
 module.exports = router;
